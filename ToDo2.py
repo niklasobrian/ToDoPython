@@ -32,12 +32,18 @@ class Ui_MainWindow(object):
         self.label.setObjectName("label")
         self.label_2 = QtWidgets.QLabel(self.centralwidget)
         self.label_2.setGeometry(QtCore.QRect(540, 110, 101, 16))
-        self.label_2.setObjectName("label_2")
+        self.label_2.setObjectName("label_2")        
+
+        self.label_6 = QtWidgets.QLabel(self.centralwidget)
+        self.label_6.setGeometry(QtCore.QRect(20, 60, 101, 16))
+        self.label_6.setObjectName("label_2")
+
         self.listWidget = QtWidgets.QListWidget(self.centralwidget)
-        self.listWidget.setGeometry(QtCore.QRect(20, 40, 301, 491))
+        self.listWidget.setGeometry(QtCore.QRect(20, 80, 301, 491))
         self.listWidget.setObjectName("listWidget")
         self.listWidget.setAlternatingRowColors(True)
         self.listWidget.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
+
         self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_2.setGeometry(QtCore.QRect(720, 350, 75, 23))
         self.pushButton_2.setObjectName("pushButton_2")
@@ -71,7 +77,19 @@ class Ui_MainWindow(object):
         self.pushButton_4 = QtWidgets.QPushButton(self.centralwidget)
         self.pushButton_4.setGeometry(QtCore.QRect(340, 430, 101, 23))
         self.pushButton_4.setObjectName("pushButton_4")
+        self.pushButton_5 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_5.setGeometry(QtCore.QRect(340, 340, 101, 23))
+        self.pushButton_5.setObjectName("pushButton_4")
+        self.pushButton_6 = QtWidgets.QPushButton(self.centralwidget)
+        self.pushButton_6.setGeometry(QtCore.QRect(340, 310, 101, 23))
+        self.pushButton_6.setObjectName("pushButton_4")
+
+        self.checkBox_3 = QtWidgets.QCheckBox(self.centralwidget)
+        self.checkBox_3.setGeometry(QtCore.QRect(20, 15, 120, 17))
+        self.checkBox_3.setObjectName("checkBox_2")
+
         MainWindow.setCentralWidget(self.centralwidget)
+
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setGeometry(QtCore.QRect(0, 0, 800, 21))
         self.menubar.setObjectName("menubar")
@@ -87,8 +105,9 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.pushButton.setText(_translate("MainWindow", "Create Task"))
-        self.label.setText(_translate("MainWindow", "Task Name <PK>"))
-        self.label_2.setText(_translate("MainWindow", "Task Family <FK>"))
+        self.label.setText(_translate("MainWindow", "Task Family <FK>"))
+        self.label_2.setText(_translate("MainWindow", "Task Name <PK>"))
+        self.label_6.setText(_translate("MainWindow", "Top Layer"))
         self.pushButton_2.setText(_translate("MainWindow", "Delete Task"))
         self.label_3.setText(_translate("MainWindow", "Time Consumption"))
         self.pushButton_3.setText(_translate("MainWindow", "Update"))
@@ -96,29 +115,73 @@ class Ui_MainWindow(object):
         self.label_5.setText(_translate("MainWindow", "Date & Time Added"))
         self.checkBox.setText(_translate("MainWindow", "COMPLETED"))
         self.checkBox_2.setText(_translate("MainWindow", "INITIATED"))
-        self.pushButton_4.setText(_translate("MainWindow", "Show Top Layer"))
+        self.pushButton_4.setText(_translate("MainWindow", "Show All Tasks"))
+        self.pushButton_5.setText(_translate("MainWindow", "Show Sub Tasks"))
+        self.pushButton_6.setText(_translate("MainWindow", "Show Parent Tasks"))
+        self.checkBox_3.setText(_translate("MainWindow", "Alfabetical Order"))
 
         self.pushButton.clicked.connect(self.create_task)
         self.pushButton_4.clicked.connect(self.display_tasks)
         self.pushButton_2.clicked.connect(self.delete_task)
+        self.pushButton_5.clicked.connect(self.display_sub_tasks)
+        self.pushButton_6.clicked.connect(self.display_parent_tasks)
+        self.checkBox_3.stateChanged.connect(self.alfabet_state_changed)
 
     def create_task(self):
         name = self.lineEdit.text()
         parent = self.lineEdit_2.text()
         #DAL.create_tables(name, parent)
-        DAL.fill_table(name, parent)
+        #DAL.fill_table(name, parent)
         DAL.create_table(name, parent)
 
     def display_tasks(self):
         DAL.display_tasks(self)
         self.centralwidget.show()
+        self.label_6.setText("All Tasks")
 
     def delete_task(self):
         print (self.listWidget.currentItem().text())
         text1 = self.listWidget.currentItem().text()
         text2 = (re.findall(r"'(.*?)'", text1))
         DAL.delete_task(text2)
+        try:
+            DAL.delete_table(text2[0])
+        except:
+            print("no table with that name")
 
+    def alfabet_state_changed(self, int):
+        if self.checkBox_3.isChecked():
+            self.listWidget.setSortingEnabled(True)
+            self.display_tasks()
+        else:
+            self.listWidget.setSortingEnabled(False)
+            self.display_tasks()
+
+    def display_sub_tasks(self):
+        try:
+            print ("current item is " + self.listWidget.currentItem().text())
+            text1 = self.listWidget.currentItem().text()
+            text2 = (re.findall(r"'(.*?)'", text1))
+        except:
+            print("select a parent task first")
+        try:
+            DAL.display_sub_tasks(self, text2[0])
+        except:
+            print("no sub tasks to display")
+        self.label_6.setText(text2[0])
+
+    def display_parent_tasks(self):
+        try:
+            print ("current item is " + self.listWidget.currentItem().text())
+            text1 = self.listWidget.currentItem().text()
+            text2 = (re.findall(r"'(.*?)'", text1))
+            print(text2[1])
+        except:
+            print("select a parent task first")
+        try:
+            DAL.display_sub_tasks(self, text2[1])
+        except:
+            print("no sub tasks to display")
 
 
 
